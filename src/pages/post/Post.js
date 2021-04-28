@@ -9,8 +9,8 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import ThumbUpIcon from "@material-ui/icons/ThumbUp";
 import StarsIcon from "@material-ui/icons/Stars";
-import ExposurePlus1Icon from "@material-ui/icons/ExposurePlus1";
-import axios from "../../config/axios";
+import CommentIcon from "@material-ui/icons/Comment";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles({
   root: {
@@ -21,75 +21,18 @@ const useStyles = makeStyles({
   detail: {
     overflow: "hidden",
   },
-
   bottom: {
     justifyContent: "space-between",
-  },
-  fadein: {
-    opacity: 0,
-    transition: "opacity 0.5s",
-  },
-  fadeout: {
-    opacity: 1,
-    transition: "opacity 0.5s",
   },
 });
 
 function Post(prop) {
-  const [likeColor, setLikeColor] = useState("disabled");
-  const [likePlus, setLikePlus] = useState(false);
-  const [recPlus, setRecPlus] = useState(false);
-  const [recColor, setRecColor] = useState("disabled");
-  const [like, setLike] = useState(false);
-  const [rec, setRec] = useState(false);
-  const [ulike, setUlike] = useState([]);
+  const history = useHistory();
   const classes = useStyles();
-  const [liked, setLiked] = useState([]);
 
-  function handleRec() {
-    if (!rec) {
-      setRecColor("secondary");
-      setRec(true);
-      setRecPlus(true);
-    }
-    setTimeout(() => {
-      setRecPlus(false);
-    }, 500);
-  }
-
-  const handlePushLike = async () => {
-    try {
-      await axios.patch(`/promote/like/${prop.id}`);
-      if (!like) {
-        setLikeColor("primary");
-        setLike(true);
-        setLikePlus(true);
-      }
-      setTimeout(() => {
-        setLikePlus(false);
-      }, 500);
-    } catch (err) {}
+  const handlePostPage = () => {
+    history.push(`/post/:${prop.id}`);
   };
-
-  const handleAlrLike = async () => {
-    try {
-      const res = await axios.get("/promote");
-      setUlike(res.data.promote);
-    } catch (err) {}
-  };
-
-  const handleDisabled = () => {
-    const check = ulike.filter((item) => item.PLikeId === prop.id);
-    setLiked(check);
-  };
-
-  useEffect(() => {
-    handleAlrLike();
-  }, []);
-
-  useEffect(() => {
-    handleDisabled();
-  }, []);
 
   return (
     <div>
@@ -124,35 +67,32 @@ function Post(prop) {
             <Button size="small" color="primary">
               Share
             </Button>
-            <Button size="small" color="primary">
+            <Button
+              onClick={() => handlePostPage()}
+              size="small"
+              color="primary"
+            >
               Learn More
             </Button>
           </div>
           <div className="d-flex">
             <div className="d-flex align-items-center mx-3">
               <h4 className="m-0">{prop.Likes}</h4>
-              <Button
-                disabled={liked ? true : false}
-                size="small"
-                color="primary"
-              >
-                <ThumbUpIcon
-                  onClick={() => handlePushLike()}
-                  color={liked ? "primary" : likeColor}
-                />
+              <Button size="small" color="primary">
+                <ThumbUpIcon color="primary" />
               </Button>
-              <ExposurePlus1Icon
-                className={likePlus ? classes.fadeout : classes.fadein}
-              />
             </div>
             <div className="d-flex align-items-center mx-3">
               <h4 className="m-0">{prop.Recommend}</h4>
-              <Button size="small" color="primary">
-                <StarsIcon onMouseDown={() => handleRec()} color={recColor} />
+              <Button size="small" color="secondary">
+                <StarsIcon />
               </Button>
-              <ExposurePlus1Icon
-                className={recPlus ? classes.fadeout : classes.fadein}
-              />
+            </div>
+            <div className="d-flex align-items-center mx-3">
+              <h4 className="m-0">{prop.Commend}</h4>
+              <Button size="small" color="primary">
+                <CommentIcon color="disabled" />
+              </Button>
             </div>
           </div>
         </CardActions>

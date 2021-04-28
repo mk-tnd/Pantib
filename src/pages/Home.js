@@ -33,6 +33,7 @@ import localStorageService from "../services/localStorageService";
 import { useHistory } from "react-router-dom";
 import AddPost from "./post/AddPost";
 import Profile from "./Profile";
+import isAuth from "../contexts/ContextProvider";
 
 const drawerWidth = 240;
 
@@ -167,6 +168,7 @@ function Home() {
   const [error, setError] = useState({});
   const [isAddPost, setIsAddPost] = useState(false);
   const [isProfile, setIsProfile] = useState(false);
+  const { isAuth } = useContext(Context);
   const history = useHistory();
 
   useEffect(() => {
@@ -225,6 +227,15 @@ function Home() {
     localStorageService.clearToken();
     setIsAuth(false);
     history.push("/");
+  };
+
+  const handleAddPost = () => {
+    if (isAuth) {
+      setIsAddPost(true);
+    } else {
+      alert("เข้าสู่ระบบก่อนใช้งาน");
+      history.push("/");
+    }
   };
 
   const menuId = "primary-search-account-menu";
@@ -330,10 +341,7 @@ function Home() {
           <div>
             <IconButton color="inherit">
               <Badge badgeContent={null} color="secondary">
-                <Icon
-                  onClick={() => setIsAddPost(true)}
-                  style={{ fontSize: 30 }}
-                >
+                <Icon onClick={() => handleAddPost()} style={{ fontSize: 30 }}>
                   add_circle
                 </Icon>
               </Badge>
@@ -350,19 +358,31 @@ function Home() {
                 <NotificationsIcon />
               </Badge>
             </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <AccountCircle />
-              <h5
-                style={{ margin: "0 10px" }}
-              >{`${user.FirstName} ${user.LastName}`}</h5>
-            </IconButton>
+            {isAuth ? (
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+              >
+                <AccountCircle />
+                <h5
+                  style={{ margin: "0 10px" }}
+                >{`${user.FirstName} ${user.LastName}`}</h5>
+              </IconButton>
+            ) : (
+              <IconButton
+                edge="end"
+                aria-label="back to register"
+                aria-haspopup="true"
+                onClick={() => history.push("/")}
+                color="inherit"
+              >
+                <h5 style={{ margin: "0 10px" }}>เข้าสู่ระบบ / สมัครสมาชิก</h5>
+              </IconButton>
+            )}
           </div>
           <div className={classes.sectionMobile}>
             <IconButton

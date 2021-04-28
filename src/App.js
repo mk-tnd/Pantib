@@ -4,37 +4,46 @@ import AddPost from "./pages/post/AddPost";
 import Auth from "./pages/Auth";
 import SignUp from "./components/auth/Register";
 import Profile from "./pages/Profile";
+import SinglePostPage from "./pages/post/SinglePostPage";
 import { useContext } from "react";
 import { Context } from "./contexts/ContextProvider";
 
-const privateRoutes = [
-  {
-    path: "/",
-    component: Home,
-  },
-  {
-    path: "/profile",
-    component: Profile,
-  },
-  {
-    path: "/addpost",
-    component: AddPost,
-  },
-];
-
-const publicRoutes = [
-  {
-    path: "/",
-    component: Auth,
-  },
-  {
-    path: "/register",
-    component: SignUp,
-  },
-];
-
 function App() {
   const { isAuth } = useContext(Context);
+  const privateRoutes = [
+    {
+      path: "/",
+      component: Home,
+    },
+    {
+      path: "/profile",
+      component: Profile,
+    },
+    {
+      path: `/post/:pid`,
+      component: SinglePostPage,
+    },
+    {
+      path: "/addpost",
+      component: AddPost,
+    },
+  ];
+
+  const publicRoutes = [
+    {
+      path: "/home",
+      component: Home,
+    },
+    {
+      path: "/",
+      component: Auth,
+    },
+
+    {
+      path: "/register",
+      component: SignUp,
+    },
+  ];
   return (
     <BrowserRouter>
       <Switch>
