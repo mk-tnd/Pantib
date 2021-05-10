@@ -38,7 +38,10 @@ function App() {
       path: "/",
       component: Auth,
     },
-
+    {
+      path: `/post/:pid`,
+      component: SinglePostPage,
+    },
     {
       path: "/register",
       component: SignUp,

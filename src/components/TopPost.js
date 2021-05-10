@@ -3,8 +3,10 @@ import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import Button from "@material-ui/core/Button";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import { formatDateTime } from "../utils/customize";
 import Typography from "@material-ui/core/Typography";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles({
   root: {
@@ -24,29 +26,53 @@ const useStyles = makeStyles({
   },
 });
 
-function TopPost() {
+function TopPost(prop) {
   const classes = useStyles();
+  const history = useHistory();
+
+  const handlePostPage = (id) => {
+    history.push(`/post/:${id}`);
+  };
 
   return (
-    <Card className={classes.root}>
-      <CardContent>
-        <Typography variant="h5" component="h2">
-          Hello
-        </Typography>
-        <Typography className={classes.pos} color="textSecondary">
-          adjective
-        </Typography>
-        <Typography variant="body2" component="p">
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ipsam,
-          reiciendis ratione quae impedit quibusdam architecto laboriosam,
-          iusto, quos vel molestiae iure a nemo vero incidunt ad quisquam
-          corrupti eos deleniti.
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small">Learn More</Button>
-      </CardActions>
-    </Card>
+    <div>
+      {prop.posts.map((item) => (
+        <Card key={item.id} className={classes.root}>
+          <CardActionArea onClick={() => handlePostPage(item.id)}>
+            <CardContent>
+              <div>
+                {item.Images ? (
+                  <img
+                    src={item.Images}
+                    alt={item.TopicName}
+                    className="img-fluid mb-3"
+                  />
+                ) : null}
+              </div>
+              <Typography variant="h5">{item.TopicName}</Typography>
+              <Typography className={classes.pos} color="textSecondary">
+                {item.Details}
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+          <CardActions
+            style={{ flexDirection: "column", alignItems: "flex-start" }}
+          >
+            <Typography variant="body2" color="textSecondary" component="h5">
+              Posted by {item.User.FirstName} {item.User.LastName}
+            </Typography>
+            <Typography
+              style={{ margin: "0" }}
+              variant="body2"
+              color="textSecondary"
+              component="h5"
+            >
+              At {formatDateTime(new Date(item.createdAt))}
+            </Typography>
+          </CardActions>
+        </Card>
+      ))}
+    </div>
   );
 }
 

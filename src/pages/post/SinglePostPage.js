@@ -2,18 +2,10 @@ import React from "react";
 import { fade, makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import InputBase from "@material-ui/core/InputBase";
-import Badge from "@material-ui/core/Badge";
-import MenuItem from "@material-ui/core/MenuItem";
-import Menu from "@material-ui/core/Menu";
 import SearchIcon from "@material-ui/icons/Search";
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import MailIcon from "@material-ui/icons/Mail";
-import NotificationsIcon from "@material-ui/icons/Notifications";
 import Button from "@material-ui/core/Button";
-import MoreIcon from "@material-ui/icons/MoreVert";
 import ThumbUpIcon from "@material-ui/icons/ThumbUp";
 import StarsIcon from "@material-ui/icons/Stars";
 import ExposurePlus1Icon from "@material-ui/icons/ExposurePlus1";
@@ -24,6 +16,8 @@ import { useEffect } from "react";
 import axios from "../../config/axios";
 import { useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
+import { formatDateTime } from "../../utils/customize";
+import { Context } from "../../contexts/ContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -36,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   bottom: {
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
   },
   title: {
     display: "none",
@@ -106,53 +100,35 @@ const useStyles = makeStyles((theme) => ({
 function SinglePostPage() {
   const classes = useStyles();
   const history = useHistory();
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
   const { pid } = useParams();
   const { thisPost, setThisPost } = useContext(PostContext);
   const [text, setText] = useState("");
   const [commends, setCommends] = useState([]);
+  const [isloading, setIsloading] = useState(false);
+  const { isAuth } = useContext(Context);
 
   const [likeColor, setLikeColor] = useState("disabled");
   const [likePlus, setLikePlus] = useState(false);
   const [recPlus, setRecPlus] = useState(false);
   const [recColor, setRecColor] = useState("disabled");
   const [rec, setRec] = useState(false);
-  const [ulike, setUlike] = useState([]);
-  const [liked, setLiked] = useState([]);
   const [like, setLike] = useState(false);
 
-  const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleRec = async () => {
+    try {
+      await axios.patch(`/promote/recommend/${+pid.split(":")[1]}`);
+      if (!rec) {
+        setRecColor("secondary");
+        setRec(true);
+        setRecPlus(true);
+      }
+      setTimeout(() => {
+        setRecPlus(false);
+        setRecColor("disabled");
+      }, 500);
+    } catch (err) {}
   };
-
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    handleMobileMenuClose();
-  };
-
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
-
-  function handleRec() {
-    if (!rec) {
-      setRecColor("secondary");
-      setRec(true);
-      setRecPlus(true);
-    }
-    setTimeout(() => {
-      setRecPlus(false);
-    }, 500);
-  }
 
   const handlePushLike = async () => {
     try {
@@ -164,90 +140,17 @@ function SinglePostPage() {
       }
       setTimeout(() => {
         setLikePlus(false);
+        setLikeColor("disabled");
       }, 500);
     } catch (err) {}
   };
 
-  const handleAlrLike = async () => {
-    try {
-      const res = await axios.get("/promote");
-      setUlike(res.data.promote);
-    } catch (err) {}
-  };
-
-  const handleDisabled = () => {
-    const check = ulike.filter((item) => item.PLikeId === +pid.split(":")[1]);
-    setLiked(check);
-  };
-
-  const handlePostPage = () => {
-    history.push(`/post/:${+pid.split(":")[1]}`);
-  };
-
-  useEffect(() => {
-    handleAlrLike();
-  }, []);
-
-  useEffect(() => {
-    handleDisabled();
-  }, []);
-
-  const menuId = "primary-search-account-menu";
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={menuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
-    </Menu>
-  );
-
-  const mobileMenuId = "primary-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem>
-        <IconButton aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="secondary">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton aria-label="show 11 new notifications" color="inherit">
-          <Badge badgeContent={11} color="secondary">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-    </Menu>
-  );
+  // const handleAlrLike = async () => {
+  //   try {
+  //     const res = await axios.get("/promote");
+  //     setCheckLike(res.data.promote);
+  //   } catch (err) {}
+  // };
 
   const handleCommend = (e) => {
     const commend = e.target.value;
@@ -262,10 +165,16 @@ function SinglePostPage() {
   const fetchThisPost = async () => {
     const res = await axios.get(`/post/${+pid.split(":")[1]}`);
     setThisPost(res.data.posts);
+    setIsloading(true);
   };
 
   const handleAddCommend = async (e) => {
-    await axios.post(`/commend/${+pid.split(":")[1]}`, { text });
+    if (isAuth) {
+      await axios.post(`/commend/${+pid.split(":")[1]}`, { text });
+    } else {
+      alert("เข้าสู่ระบบก่อนใช้งาน");
+      history.push("/");
+    }
   };
 
   useEffect(() => {
@@ -300,43 +209,9 @@ function SinglePostPage() {
             />
           </div>
           <div className={classes.grow} />
-          <div className={classes.sectionDesktop}>
-            <IconButton aria-label="show 4 new mails" color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <MailIcon />
-              </Badge>
-            </IconButton>
-            <IconButton aria-label="show 17 new notifications" color="inherit">
-              <Badge badgeContent={17} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-          </div>
-          <div className={classes.sectionMobile}>
-            <IconButton
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <MoreIcon />
-            </IconButton>
-          </div>
         </Toolbar>
       </AppBar>
-      {renderMobileMenu}
-      {renderMenu}
+
       <div className="container">
         <div
           className="row p-4 m-4"
@@ -347,17 +222,42 @@ function SinglePostPage() {
               <h3>{thisPost.TopicName}</h3>
               <p>{thisPost.Details}</p>
             </Typography>
+            {thisPost.Images ? (
+              <div className="mx-auto" style={{ width: "700px" }}>
+                <img
+                  src={thisPost.Images}
+                  alt={thisPost.TopicName}
+                  className="img-fluid mx-auto d-flex my-4"
+                  style={{ maxHeight: "500px" }}
+                />
+              </div>
+            ) : null}
             <CardActions className={classes.bottom}>
               <div className="d-flex">
+                <Typography
+                  className="mr-3"
+                  variant="body2"
+                  color="textSecondary"
+                  component="h5"
+                >
+                  {isloading &&
+                    `Posted by ${thisPost.User.FirstName} ${thisPost.User.LastName}`}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  component="h5"
+                >
+                  {isloading &&
+                    `${formatDateTime(new Date(thisPost.createdAt))}`}
+                </Typography>
+              </div>
+              <div className="d-flex">
                 <div className="d-flex align-items-center">
-                  <Button
-                    disabled={liked ? true : false}
-                    size="small"
-                    color="primary"
-                  >
+                  <Button size="small" color="primary">
                     <ThumbUpIcon
                       onClick={() => handlePushLike()}
-                      color={liked ? "primary" : likeColor}
+                      color={likeColor}
                     />
                   </Button>
                   <ExposurePlus1Icon

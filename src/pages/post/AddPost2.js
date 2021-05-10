@@ -1,5 +1,6 @@
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
+import { DropzoneArea } from "material-ui-dropzone";
 import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "../../config/axios";
@@ -16,6 +17,7 @@ function AddPost2(prop) {
     },
   }));
   const classes = useStyles();
+  const [file, setFile] = useState(null);
   const [content, setContent] = useState({
     TopicName: "",
     Details: "",
@@ -28,12 +30,17 @@ function AddPost2(prop) {
 
   const handleAddPost = async (e) => {
     const { TopicName, Details } = content;
+    const formData = new FormData();
+    formData.append("TopicName", TopicName);
+    formData.append("Images", file);
+    formData.append("Details", Details);
+    formData.append("zoneId", prop.zid);
     e.preventDefault();
-    await axios.post("/post", { TopicName, Details, zoneId: prop.zid });
+    await axios.post("/post", formData);
     prop.setIsZoneChoose(false);
     prop.setIsAddPost(false);
   };
-  console.log(content);
+
   return (
     <div className="container">
       <h2 className="text-center">Create Post</h2>
@@ -54,6 +61,14 @@ function AddPost2(prop) {
               />
             </Grid>
             <Grid item xs={12}>
+              <DropzoneArea
+                name="Images"
+                acceptedFiles={["image/*"]}
+                filesLimit={1}
+                onChange={(files) => setFile(files[0])}
+              />
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 variant="outlined"
                 fullWidth
@@ -64,17 +79,6 @@ function AddPost2(prop) {
                 value={content.Details}
               />
             </Grid>
-            {/* <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-              />
-            </Grid> */}
           </Grid>
           <Button
             type="submit"

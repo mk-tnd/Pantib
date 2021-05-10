@@ -1,12 +1,10 @@
-import React, { useContext } from "react";
-import { PostContext } from "../contexts/PostContextProvider";
+import React from "react";
 import Post from "../pages/post/Post";
 
-function PostList() {
-  const { posts } = useContext(PostContext);
+function PostList(prop) {
   return (
-    <div>
-      {posts.map((item) => (
+    <div style={{ width: "100%" }}>
+      {prop.posts.map((item) => (
         <Post key={item.id} {...item} />
       ))}
     </div>

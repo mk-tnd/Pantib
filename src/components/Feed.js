@@ -5,23 +5,25 @@ import "owl.carousel/dist/assets/owl.theme.default.css";
 import "../utils/owl.css";
 import { Container, Grid } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import img1 from "../images/img1.png";
-import img2 from "../images/img2.png";
-import img3 from "../images/img3.png";
+import img1 from "../images/img1.gif";
+import img2 from "../images/img2.gif";
+import img3 from "../images/img3.gif";
+import img4 from "../images/img4.gif";
 import TopPost from "./TopPost";
 import { Context } from "../contexts/ContextProvider";
 import axios from "../config/axios";
 import PostList from "./PostList";
+import Typography from "@material-ui/core/Typography";
 import { PostContext } from "../contexts/PostContextProvider";
 
-function Feed() {
+function Feed(prop) {
   const options = {
-    margin: 20,
+    margin: 50,
     responsiveClass: true,
     nav: true,
     dots: false,
     autoplay: false,
-    loop: true,
+    loop: false,
     responsive: {
       0: {
         items: 1,
@@ -32,11 +34,8 @@ function Feed() {
       600: {
         items: 3,
       },
-      700: {
-        items: 4,
-      },
       1000: {
-        items: 5,
+        items: 4,
       },
     },
   };
@@ -48,8 +47,16 @@ function Feed() {
   });
 
   const { zone, setZone } = useContext(Context);
-  const { setPosts } = useContext(PostContext);
-  const Img = [img1, img2, img3];
+  const { zid, setZid } = useContext(Context);
+  const { posts, setPosts } = useContext(PostContext);
+  const [recPosts, setRecPosts] = useState([]);
+  const [topPosts, setTopPosts] = useState([]);
+  const Img = [img1, img2, img3, img4];
+
+  const handleZone = (e) => {
+    prop.Zone(true);
+    setZid(+e.target.id);
+  };
 
   const fetchZone = async () => {
     const res = await axios.get("/zone");
@@ -61,21 +68,37 @@ function Feed() {
     setPosts(res.data.posts);
   };
 
+  const fetchRecPost = async () => {
+    const res = await axios.get("/post/recpost");
+    setRecPosts(res.data.posts);
+  };
+
+  const fetchTopPost = async () => {
+    const res = await axios.get("/post/toppost");
+    setTopPosts(res.data.posts);
+  };
+
   useEffect(() => {
     fetchZone();
     fetchPost();
+    fetchRecPost();
+    fetchTopPost();
   }, []);
 
-  const classes = useStyles();
-
   return (
-    <div>
-      <Container>
-        <h1>Community</h1>
+    <div className="container">
+      <h1>Community</h1>
+      <div className="row">
         <OwlCarousel className="owl-theme" {...options}>
           {zone.map((item, index) => (
-            <div key={index} className="item">
+            <div
+              onClick={(e) => handleZone(e)}
+              style={{ cursor: "pointer" }}
+              key={item.id}
+              className="item"
+            >
               <img
+                id={item.id}
                 className="img-community"
                 src={Img[+item.Images - 1]}
                 alt={item.Images}
@@ -83,25 +106,42 @@ function Feed() {
             </div>
           ))}
         </OwlCarousel>
-        <Grid container item>
-          <Grid container direction="column" item xs={12} md={8}>
-            <div>
-              <h2>Recommended Post</h2>
-            </div>
-            <div style={{ paddingRight: "20px", marginBottom: "10px" }}>
-              <PostList />
-            </div>
-          </Grid>
-          <Grid className={classes.root} container item xs={12} md={4}>
-            <div>
-              <h2>Top Post</h2>
-            </div>
-            <div style={{ paddingRight: "20px", marginBottom: "10px" }}>
-              <TopPost />
-            </div>
-          </Grid>
-        </Grid>
-      </Container>
+      </div>
+      <div className="row">
+        <div className="col-12 col-md-8">
+          <div>
+            <h2>Recommended Post</h2>
+          </div>
+          <div style={{ paddingRight: "20px", marginBottom: "10px" }}>
+            <PostList posts={recPosts} />
+          </div>
+        </div>
+        <div className="col-12 col-md-4" style={{ height: "100%" }}>
+          <div>
+            <h2>Top Post</h2>
+          </div>
+          <div style={{ paddingRight: "20px", marginBottom: "10px" }}>
+            <TopPost posts={topPosts} />
+          </div>
+        </div>
+      </div>
+      <div className="row mt-3">
+        <div>
+          <Typography variant="body2" component="h1">
+            <h2>All Post</h2>
+          </Typography>
+          <div
+            style={{
+              paddingRight: "20px",
+              marginBottom: "10px",
+              overflow: "auto",
+              height: "800px",
+            }}
+          >
+            <PostList posts={posts} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

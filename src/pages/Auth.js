@@ -70,6 +70,7 @@ function Auth() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState({});
+  const [errorAuth, setErrorAuth] = useState(null);
   const classes = useStyles();
   const history = useHistory();
   const { setIsAuth } = useContext(Context);
@@ -90,11 +91,9 @@ function Auth() {
       setIsAuth(true);
       history.push("/");
     } catch (err) {
-      console.dir(err);
+      setErrorAuth(err.response.data.message);
     }
   };
-
-  console.log(error);
 
   return (
     <Grid container component="main" className={classes.root}>
@@ -109,6 +108,11 @@ function Auth() {
             Sign in
           </Typography>
           <form onSubmit={handleLogin} className={classes.form} noValidate>
+            {errorAuth && (
+              <span className="help-block" style={{ color: "red" }}>
+                {errorAuth}
+              </span>
+            )}
             <TextField
               error={error.username ? true : false}
               variant="outlined"

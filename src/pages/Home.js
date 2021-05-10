@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { fade, makeStyles, useTheme } from "@material-ui/core/styles";
+import { fade, makeStyles } from "@material-ui/core/styles";
 import Icon from "@material-ui/core/Icon";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -9,23 +9,11 @@ import InputBase from "@material-ui/core/InputBase";
 import Badge from "@material-ui/core/Badge";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
-import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
 import AccountCircle from "@material-ui/icons/AccountCircle";
-import MailIcon from "@material-ui/icons/Mail";
-import NotificationsIcon from "@material-ui/icons/Notifications";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import clsx from "clsx";
-import Drawer from "@material-ui/core/Drawer";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import List from "@material-ui/core/List";
-import Divider from "@material-ui/core/Divider";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
 import Feed from "../components/Feed";
 import { Context } from "../contexts/ContextProvider";
 import axios from "../config/axios";
@@ -33,13 +21,20 @@ import localStorageService from "../services/localStorageService";
 import { useHistory } from "react-router-dom";
 import AddPost from "./post/AddPost";
 import Profile from "./Profile";
-import isAuth from "../contexts/ContextProvider";
+import Zone from "./Zone";
+import Avatar from "@material-ui/core/Avatar";
 
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
+  },
+  rootAvatar: {
+    display: "flex",
+    "& > *": {
+      margin: theme.spacing(1),
+    },
   },
   appBar: {
     transition: theme.transitions.create(["margin", "width"], {
@@ -160,14 +155,16 @@ const useStyles = makeStyles((theme) => ({
 
 function Home() {
   const classes = useStyles();
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [triggerEdit, setTriggerEdit] = useState(false);
+  const [triggerEditImg, setTriggerEditImg] = useState(false);
   const { setIsAuth, user, setUser } = useContext(Context);
   const [error, setError] = useState({});
   const [isAddPost, setIsAddPost] = useState(false);
   const [isProfile, setIsProfile] = useState(false);
+  const [isZone, setIsZone] = useState(false);
   const { isAuth } = useContext(Context);
   const history = useHistory();
 
@@ -175,21 +172,13 @@ function Home() {
     const getUser = async () => {
       try {
         const res = await axios.get("/users/me");
-        setUser(res.data.user);
+        if (user) setUser(res.data.user);
       } catch (err) {
         setError(err.response.data.message);
       }
     };
     getUser();
-  }, []);
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  }, [triggerEdit, triggerEditImg]);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -215,10 +204,12 @@ function Home() {
     history.push("/");
     setIsAddPost(false);
     setIsProfile(false);
+    setIsZone(false);
   };
 
   const gotoProfile = () => {
     setIsAddPost(false);
+    setIsZone(false);
     setIsProfile(true);
   };
 
@@ -250,7 +241,6 @@ function Home() {
       onClose={handleMenuClose}
     >
       <MenuItem onClick={() => gotoProfile()}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>
   );
@@ -266,22 +256,6 @@ function Home() {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem>
-        <IconButton aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="secondary">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton aria-label="show 11 new notifications" color="inherit">
-          <Badge badgeContent={11} color="secondary">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton
           aria-label="account of current user"
@@ -297,7 +271,7 @@ function Home() {
   );
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root + " container-fluid"}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -307,15 +281,6 @@ function Home() {
         color="primary"
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            className={clsx(classes.menuButton, open && classes.hide)}
-          >
-            <MenuIcon />
-          </IconButton>
           <Typography
             onClick={handleLogo}
             className={classes.title}
@@ -348,16 +313,6 @@ function Home() {
             </IconButton>
           </div>
           <div className={classes.sectionDesktop}>
-            <IconButton aria-label="" color="inherit">
-              <Badge badgeContent={null} color="secondary">
-                <MailIcon />
-              </Badge>
-            </IconButton>
-            <IconButton aria-label="" color="inherit">
-              <Badge badgeContent={null} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
             {isAuth ? (
               <IconButton
                 edge="end"
@@ -367,7 +322,7 @@ function Home() {
                 onClick={handleProfileMenuOpen}
                 color="inherit"
               >
-                <AccountCircle />
+                <Avatar alt={user.FirstName} src={user.ProfileImg} />
                 <h5
                   style={{ margin: "0 10px" }}
                 >{`${user.FirstName} ${user.LastName}`}</h5>
@@ -399,61 +354,21 @@ function Home() {
       </AppBar>
       {renderMobileMenu}
       {renderMenu}
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        anchor="left"
-        open={open}
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-      >
-        <div className={classes.drawerHeader}>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "ltr" ? (
-              <ChevronLeftIcon />
-            ) : (
-              <ChevronRightIcon />
-            )}
-          </IconButton>
-        </div>
-        <Divider />
-        <List>
-          {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {["All mail", "Trash", "Spam"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-      <main
-        className={clsx(classes.content, {
-          [classes.contentShift]: open,
-        })}
-      >
+      <div className="container mt-4">
         <div className={classes.drawerHeader} />
         {isAddPost ? (
           <AddPost setIsAddPost={setIsAddPost} />
         ) : isProfile ? (
-          <Profile />
+          <Profile
+            setTriggerEdit={setTriggerEdit}
+            setTriggerEditImg={setTriggerEditImg}
+          />
+        ) : isZone ? (
+          <Zone />
         ) : (
-          <Feed />
+          <Feed Zone={setIsZone} />
         )}
-      </main>
+      </div>
     </div>
   );
 }
