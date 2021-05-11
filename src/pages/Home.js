@@ -5,14 +5,13 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
-import InputBase from "@material-ui/core/InputBase";
 import Badge from "@material-ui/core/Badge";
 import MenuItem from "@material-ui/core/MenuItem";
-import Menu from "@material-ui/core/Menu";
 import SearchIcon from "@material-ui/icons/Search";
+import InputBase from "@material-ui/core/InputBase";
+import Menu from "@material-ui/core/Menu";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import MoreIcon from "@material-ui/icons/MoreVert";
-import clsx from "clsx";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Feed from "../components/Feed";
 import { Context } from "../contexts/ContextProvider";
@@ -165,6 +164,7 @@ function Home() {
   const [isAddPost, setIsAddPost] = useState(false);
   const [isProfile, setIsProfile] = useState(false);
   const [isZone, setIsZone] = useState(false);
+  const [search, setSearch] = useState("");
   const { isAuth } = useContext(Context);
   const history = useHistory();
 
@@ -229,6 +229,17 @@ function Home() {
     }
   };
 
+  const handleSearchText = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleSearch = (e) => {
+    const code = e.keyCode || e.which;
+    if (code === 13) {
+      setOpen(true);
+    }
+  };
+
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
@@ -273,13 +284,7 @@ function Home() {
   return (
     <div className={classes.root + " container-fluid"}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        className={clsx(classes.appBar, {
-          [classes.appBarShift]: open,
-        })}
-        color="primary"
-      >
+      <AppBar position="fixed" color="primary">
         <Toolbar>
           <Typography
             onClick={handleLogo}
@@ -295,6 +300,9 @@ function Home() {
             </div>
             <InputBase
               placeholder="Search…"
+              value={search}
+              onChange={handleSearchText}
+              onKeyPress={handleSearch}
               classes={{
                 root: classes.inputRoot,
                 input: classes.inputInput,
@@ -366,7 +374,13 @@ function Home() {
         ) : isZone ? (
           <Zone />
         ) : (
-          <Feed Zone={setIsZone} />
+          <Feed
+            Zone={setIsZone}
+            open={open}
+            setOpen={setOpen}
+            search={search}
+            setSearch={setSearch}
+          />
         )}
       </div>
     </div>

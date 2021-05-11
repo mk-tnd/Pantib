@@ -3,8 +3,6 @@ import { fade, makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import InputBase from "@material-ui/core/InputBase";
-import SearchIcon from "@material-ui/icons/Search";
 import Button from "@material-ui/core/Button";
 import ThumbUpIcon from "@material-ui/icons/ThumbUp";
 import StarsIcon from "@material-ui/icons/Stars";
@@ -195,7 +193,7 @@ function SinglePostPage() {
           >
             Pantib
           </Typography>
-          <div className={classes.search}>
+          {/* <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
@@ -207,7 +205,7 @@ function SinglePostPage() {
               }}
               inputProps={{ "aria-label": "search" }}
             />
-          </div>
+          </div> */}
           <div className={classes.grow} />
         </Toolbar>
       </AppBar>
@@ -249,7 +247,7 @@ function SinglePostPage() {
                   component="h5"
                 >
                   {isloading &&
-                    `${formatDateTime(new Date(thisPost.createdAt))}`}
+                    `At ${formatDateTime(new Date(thisPost.createdAt))}`}
                 </Typography>
               </div>
               <div className="d-flex">
@@ -283,12 +281,28 @@ function SinglePostPage() {
           {commends.map((item) => (
             <div
               key={item.id}
-              className="row p-4 m-4"
+              className="row flex-column p-4 m-4"
               style={{ border: "1px solid grey", borderRadius: "5px" }}
             >
-              <div>
-                <p>{item.Text}</p>
-              </div>
+              <Typography className="mb-3" variant="p" component="h5">
+                {item.Text}
+              </Typography>
+              <CardActions>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  component="h5"
+                >
+                  commended by {item.User.FirstName} {item.User.LastName}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  component="h5"
+                >
+                  At {formatDateTime(new Date(item.createdAt))}
+                </Typography>
+              </CardActions>
             </div>
           ))}
         </div>

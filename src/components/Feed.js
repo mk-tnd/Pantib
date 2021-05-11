@@ -3,7 +3,6 @@ import OwlCarousel from "react-owl-carousel";
 import "owl.carousel/dist/assets/owl.carousel.css";
 import "owl.carousel/dist/assets/owl.theme.default.css";
 import "../utils/owl.css";
-import { Container, Grid } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import img1 from "../images/img1.gif";
 import img2 from "../images/img2.gif";
@@ -15,6 +14,9 @@ import axios from "../config/axios";
 import PostList from "./PostList";
 import Typography from "@material-ui/core/Typography";
 import { PostContext } from "../contexts/PostContextProvider";
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
 
 function Feed(prop) {
   const options = {
@@ -40,22 +42,43 @@ function Feed(prop) {
     },
   };
 
-  const useStyles = makeStyles({
+  const useStyles = makeStyles((theme) => ({
     root: {
       height: "100%",
     },
-  });
+    modal: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "60vw",
+      height: "80vh",
+      margin: "auto",
+    },
+    paper: {
+      backgroundColor: theme.palette.background.paper,
+      border: "2px solid #000",
+      boxShadow: theme.shadows[5],
+      padding: theme.spacing(2, 4, 3),
+    },
+  }));
 
+  const classes = useStyles();
   const { zone, setZone } = useContext(Context);
   const { zid, setZid } = useContext(Context);
   const { posts, setPosts } = useContext(PostContext);
   const [recPosts, setRecPosts] = useState([]);
   const [topPosts, setTopPosts] = useState([]);
+  const [searchPost, setSearchPost] = useState([]);
   const Img = [img1, img2, img3, img4];
 
   const handleZone = (e) => {
     prop.Zone(true);
     setZid(+e.target.id);
+  };
+
+  const handleClose = () => {
+    prop.setOpen(false);
+    prop.setSearch("");
   };
 
   const fetchZone = async () => {
@@ -78,12 +101,32 @@ function Feed(prop) {
     setTopPosts(res.data.posts);
   };
 
+  const fetchSearch = async () => {
+    const res = await axios.get("/post");
+    if (prop.search !== "" && prop.search !== undefined) {
+      setSearchPost(
+        posts.filter((val) => {
+          const filteredTodos = val.TopicName.toLowerCase().includes(
+            prop.search.toLowerCase()
+          );
+          return filteredTodos;
+        })
+      );
+    } else {
+      setSearchPost(res.data.posts);
+    }
+  };
+
   useEffect(() => {
     fetchZone();
     fetchPost();
     fetchRecPost();
     fetchTopPost();
   }, []);
+
+  useEffect(() => {
+    fetchSearch();
+  }, [prop.open]);
 
   return (
     <div className="container">
@@ -142,6 +185,27 @@ function Feed(prop) {
           </div>
         </div>
       </div>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        className={classes.modal}
+        open={prop.open}
+        onClose={handleClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={prop.open}>
+          <div
+            style={{ overflow: "auto", height: "900px", width: "1000px" }}
+            className={classes.paper}
+          >
+            <PostList posts={searchPost} />
+          </div>
+        </Fade>
+      </Modal>
     </div>
   );
 }
